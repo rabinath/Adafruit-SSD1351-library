@@ -418,6 +418,7 @@ void  Adafruit_SSD1351::invert(boolean v) {
 
 /********************************* low level pin initialization */
 
+#ifdef __AVR__
 Adafruit_SSD1351::Adafruit_SSD1351(uint8_t cs, uint8_t rs, uint8_t sid, uint8_t sclk, uint8_t rst) : Adafruit_GFX(128, 128) {
     _cs = cs;
     _rs = rs;
@@ -425,6 +426,7 @@ Adafruit_SSD1351::Adafruit_SSD1351(uint8_t cs, uint8_t rs, uint8_t sid, uint8_t 
     _sclk = sclk;
     _rst = rst;
 }
+#endif
 
 Adafruit_SSD1351::Adafruit_SSD1351(uint8_t cs, uint8_t rs,  uint8_t rst) : Adafruit_GFX(128, 128) {
     _cs = cs;

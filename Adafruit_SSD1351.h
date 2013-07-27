@@ -73,7 +73,9 @@
 
 class Adafruit_SSD1351  : public virtual Adafruit_GFX {
  public:
+#ifdef __AVR__
   Adafruit_SSD1351(uint8_t CS, uint8_t RS, uint8_t SID, uint8_t SCLK, uint8_t RST);
+#endif
   Adafruit_SSD1351(uint8_t CS, uint8_t RS, uint8_t RST);
 
   uint16_t Color565(uint8_t r, uint8_t g, uint8_t b);
