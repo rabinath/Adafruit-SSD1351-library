@@ -42,6 +42,7 @@ inline void Adafruit_SSD1351::spiwrite(uint8_t c) {
         return;
     }
     
+#ifdef __AVR__
     volatile uint8_t *sclkportreg = portOutputRegister(sclkport);
     volatile uint8_t *sidportreg = portOutputRegister(sidport);
     
@@ -66,10 +67,12 @@ inline void Adafruit_SSD1351::spiwrite(uint8_t c) {
         *sclkportreg |= sclkpin;
         //SCLK_PORT |= _BV(SCLK);
     }
+#endif
 }
 
 
 void Adafruit_SSD1351::writeCommand(uint8_t c) {
+#ifdef __AVR__
     *portOutputRegister(rsport) &= ~ rspin;
     //digitalWrite(_rs, LOW);
     
@@ -81,10 +84,24 @@ void Adafruit_SSD1351::writeCommand(uint8_t c) {
     
     *portOutputRegister(csport) |= cspin;
     //digitalWrite(_cs, HIGH);
+#else
+    //*portOutputRegister(rsport) &= ~ rspin;
+    digitalWrite(_rs, LOW);
+    
+    //*portOutputRegister(csport) &= ~ cspin;
+    digitalWrite(_cs, LOW);
+    
+    //Serial.print("C ");
+    spiwrite(c);
+    
+    //*portOutputRegister(csport) |= cspin;
+    digitalWrite(_cs, HIGH);
+#endif
 }
 
 
 void Adafruit_SSD1351::writeData(uint8_t c) {
+#ifdef __AVR__
     *portOutputRegister(rsport) |= rspin;
     //digitalWrite(_rs, HIGH);
     
@@ -96,6 +113,19 @@ void Adafruit_SSD1351::writeData(uint8_t c) {
     
     *portOutputRegister(csport) |= cspin;
     //digitalWrite(_cs, HIGH);
+#else
+    //*portOutputRegister(rsport) |= rspin;
+    digitalWrite(_rs, HIGH);
+    
+    //*portOutputRegister(csport) &= ~ cspin;
+    digitalWrite(_cs, LOW);
+    
+//    Serial.print("D ");
+    spiwrite(c);
+    
+    //*portOutputRegister(csport) |= cspin;
+    digitalWrite(_cs, HIGH);
+#endif
 } 
 
 /***********************************/
@@ -247,7 +277,8 @@ void Adafruit_SSD1351::drawPixel(int16_t x, int16_t y, uint16_t color)
   if ((x < 0) || (y < 0)) return;
 
   goTo(x, y);
-  
+
+#ifdef __AVR__
   // setup for data
   *portOutputRegister(rsport) |= rspin;
   *portOutputRegister(csport) &= ~ cspin;
@@ -256,12 +287,23 @@ void Adafruit_SSD1351::drawPixel(int16_t x, int16_t y, uint16_t color)
   spiwrite(color);
   
   *portOutputRegister(csport) |= cspin;  
-}
+#else
+  // setup for data
+  digitalWrite(_rs, HIGH);
+  digitalWrite(_cs, LOW);
+  
+  spiwrite(color >> 8);    
+  spiwrite(color);
+  
+  digitalWrite(_cs, HIGH);
+#endif
+ }
 
 void Adafruit_SSD1351::begin(void) {
     // set pin directions
     pinMode(_rs, OUTPUT);
     
+#ifdef __AVR__
     if (_sclk) {
         pinMode(_sclk, OUTPUT);
         sclkport = digitalPinToPort(_sclk);
@@ -271,6 +313,9 @@ void Adafruit_SSD1351::begin(void) {
         sidport = digitalPinToPort(_sid);
         sidpin = digitalPinToBitMask(_sid);
     } else {
+#else
+	{
+#endif
         // using the hardware SPI
         SPI.begin();
         SPI.setDataMode(SPI_MODE3);
@@ -279,12 +324,13 @@ void Adafruit_SSD1351::begin(void) {
     // Toggle RST low to reset; CS low so it'll listen to us
     pinMode(_cs, OUTPUT);
     digitalWrite(_cs, LOW);
+#ifdef __AVR__
     cspin = digitalPinToBitMask(_cs);
     csport = digitalPinToPort(_cs);
     
     rspin = digitalPinToBitMask(_rs);
     rsport = digitalPinToPort(_rs);
-    
+#endif    
     if (_rst) {
         pinMode(_rst, OUTPUT);
         digitalWrite(_rst, HIGH);
