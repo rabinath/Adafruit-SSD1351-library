@@ -19,7 +19,11 @@
 #include "Adafruit_GFX.h"
 #include "Adafruit_SSD1351.h"
 #include "glcdfont.c"
-#include <avr/pgmspace.h>
+#ifdef __AVR__
+ #include <avr/pgmspace.h>
+#else
+ #define pgm_read_byte(addr) (*(const unsigned char *)(addr))
+#endif
 #include "pins_arduino.h"
 #include "wiring_private.h"
 #include <SPI.h>
